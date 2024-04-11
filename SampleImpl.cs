@@ -1,5 +1,5 @@
-﻿using ApiContracts.Core;
-using ApiContracts.Extensions.Attributes;
+﻿using ApiContracts.Extensions.Attributes;
+using ApiContracts.Models.Abstract;
 
 namespace ApiContracts;
 
@@ -18,7 +18,7 @@ class HazardContract : Contract
     public override string Service => "HazardReport";
 }
 
-[Offer]
+[ContractBound]
 public class SafetyReportModel
 {
     [Acceptance<AccidentReportContract>(Required = true)]

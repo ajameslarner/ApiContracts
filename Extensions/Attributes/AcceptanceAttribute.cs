@@ -1,4 +1,4 @@
-﻿using ApiContracts.Core;
+﻿using ApiContracts.Models.Abstract;
 
 namespace ApiContracts.Extensions.Attributes;
 

@@ -3,8 +3,10 @@ using System.Text.Json;
 using Microsoft.Extensions.Primitives;
 using ApiContracts.Extensions.Attributes;
 using System.Reflection;
-using ApiContracts.Core;
 using Microsoft.AspNetCore.Http.Metadata;
+using ApiContracts.Models.Abstract;
+using ApiContracts.Extensions;
+using ApiContracts.Constants;
 
 namespace ApiContracts.Middleware;
 
@@ -14,27 +16,19 @@ public class ContractMiddleware(RequestDelegate next)
 
     public async Task Invoke(HttpContext context)
     {
-        if (!IsContractBound(context))
+        var model = GetContractBoundModel(context);
+
+        if (model is null)
         {
             await _next(context);
             return;
         }
 
-        if (!context.Request.Headers.TryGetValue("Contract-Service", out StringValues service))
+        if (!context.Request.Headers.TryGetValue(Headers.ContractName, out StringValues contractName))
         {
             context.Response.StatusCode = 400;
             context.Response.ContentType = "text/plain";
-            await context.Response.WriteAsync("Missing service name. This endpoint is under contract.");
-            return;
-        }
-
-        var model = GetEndpointModel(context);
-
-        if (model is null)
-        {
-            context.Response.StatusCode = 400;
-            context.Response.ContentType = "text/plain";
-            await context.Response.WriteAsync("Invalid service name. This endpoint is under contract.");
+            await context.Response.WriteAsync($"Missing '{Headers.ContractName}' header value. The model on this endpoint is under contract.");
             return;
         }
 
@@ -42,7 +36,7 @@ public class ContractMiddleware(RequestDelegate next)
 
         try 
         {
-            ValidateContract(model, body, service);
+            ValidateContract(model, body, contractName);
             await _next(context);
         }
         catch (Exception ex)
@@ -53,6 +47,7 @@ public class ContractMiddleware(RequestDelegate next)
         }
     }
 
+    // TODO: Refactor this
     private static void ValidateContract(object? model, JsonElement body, string? service)
     {
         ArgumentNullException.ThrowIfNull(model, nameof(model));
@@ -61,12 +56,20 @@ public class ContractMiddleware(RequestDelegate next)
         var properties = model.GetType().GetProperties()
             .Where(prop => Attribute.IsDefined(prop, typeof(AcceptanceAttribute<>)));
 
+        var errors = new List<string>();
+
         foreach (var property in properties)
         {
-            var attributes = property.GetCustomAttributes().Where(a => a.GetType().IsGenericType && a.GetType().GetGenericTypeDefinition() == typeof(AcceptanceAttribute<>));
+            var attributes = property.GetCustomAttributes(typeof(AcceptanceAttribute<>));
 
             if (!attributes.Any())
-                throw new ArgumentException($"No AcceptanceAttribute found for property {property.Name}");
+                errors.Add($"No 'AcceptanceAttribute' found for property '{property.Name}'");
+
+            if (body.TryGetProperty(property.Name.ToCamelCase(), out var _) && !attributes.Any(attr => (attr.GetType().GetProperty("Contract")?.GetValue(attr) as Contract)?.Service == service))
+            {
+                errors.Add($"The property '{property.Name}' is not included as part in acceptance of the contract: '{service}'");
+                continue;
+            }
 
             foreach (var attribute in attributes)
             {
@@ -77,18 +80,40 @@ public class ContractMiddleware(RequestDelegate next)
                     continue;
 
                 if (!IsCamelCase(body))
-                    throw new ArgumentException("Request body must be in camelCase");
+                {
+                    errors.Add("Request body must be in camelCase");
+                    continue;
+                }
 
-                if (!body.TryGetProperty(char.ToLowerInvariant(property.Name[0]) + property.Name[1..], out var propertyValue))
-                    throw new ArgumentException($"Property {property.Name[0] + property.Name[1..]} not found in request body to validate against: {contract.Service}");
+                if (!body.TryGetProperty(property.Name.ToCamelCase(), out var propertyValue))
+                {
+                    errors.Add($"Property '{property.Name.ToCamelCase()}' not found in request body to fulfill the contract: '{contract.Service}'");
+                    continue;
+                }
 
                 var requiredProperty = attribute.GetType().GetProperty("Required");
                 var required = requiredProperty?.GetValue(attribute) as bool?;
 
                 if (required == true && (propertyValue.ValueKind == JsonValueKind.Null || propertyValue.ValueKind == JsonValueKind.Undefined))
-                    throw new ArgumentException($"Property {property.Name[0] + property.Name[1..]} is required as defined by the {contract.Service} contract.");
+                {
+                    errors.Add($"Property value for '{property.Name.ToCamelCase()}' is required to fulfill the contract: '{contract.Service}'");
+                    continue;
+                }
             }
         }
+
+        // Check if there are any extra properties in the request body that do not match with the model
+        foreach (var element in body.EnumerateObject())
+        {
+            var propertyName = element.Name.ToPascalCase();
+            if (!properties.Any(p => p.Name == propertyName))
+            {
+                errors.Add($"Extra property '{element.Name}' found in request body that does not match with the '{service}' contract in the model.");
+            }
+        }
+
+        if (errors.Any())
+            throw new ArgumentException(string.Join(Environment.NewLine, errors));
     }
 
     // TODO: Need to handle xml and other content types
@@ -119,7 +144,7 @@ public class ContractMiddleware(RequestDelegate next)
         foreach (var property in jsonElement.EnumerateObject())
         {
             string propertyName = property.Name;
-            string camelCasePropertyName = char.ToLowerInvariant(propertyName[0]) + propertyName.Substring(1);
+            string camelCasePropertyName = propertyName.ToCamelCase();
 
             if (propertyName != camelCasePropertyName)
             {
@@ -130,7 +155,7 @@ public class ContractMiddleware(RequestDelegate next)
         return true;
     }
 
-    private static object? GetEndpointModel(HttpContext context)
+    private static object? GetContractBoundModel(HttpContext context)
     {
         var endpoint = context.GetEndpoint();
         if (endpoint is null)
@@ -144,16 +169,9 @@ public class ContractMiddleware(RequestDelegate next)
         if (requestType is null)
             return null;
 
-        if (requestType.GetCustomAttributes(typeof(OfferAttribute), true).Length <= 0)
+        if (requestType.GetCustomAttributes(typeof(ContractBoundAttribute), true).Length <= 0)
             return null;
 
         return Activator.CreateInstance(requestType);
-    }
-
-    private static bool IsContractBound(HttpContext context)
-    {
-        var endpoint = context.GetEndpoint();
-        var hasContractBoundAttribute = endpoint?.Metadata.GetMetadata<ContractBoundAttribute>() != null;
-        return hasContractBoundAttribute;
     }
 }

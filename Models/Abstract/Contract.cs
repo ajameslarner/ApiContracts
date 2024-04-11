@@ -1,4 +1,4 @@
-﻿namespace ApiContracts.Core;
+﻿namespace ApiContracts.Models.Abstract;
 
 public abstract class Contract
 {

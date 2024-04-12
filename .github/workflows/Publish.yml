@@ -14,16 +14,21 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
-      - name: Setup dotnet Runtime
-        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.x'
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.7
+        with:
+          versionSpec: '5.x'
+
+      - name: Use GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@main
+
       - name: Pack and Push Nuget Package
         run: |
           dotnet restore
-          export PACKAGE_VERSION=${GITHUB_REF##*/}
-          PACKAGE_VERSION=${PACKAGE_VERSION#?}
+          export PACKAGE_VERSION=${{ steps.gitversion.outputs.majorMinorPatch }}
           dotnet pack ApiContracts.csproj -p:Version=${PACKAGE_VERSION} -p:RepositoryUrl="https://github.com/ajameslarner/ApiContracts"  -o .
           dotnet nuget push ApiContracts.${PACKAGE_VERSION}.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json
-
-# dotnet test YourTestProject.csproj -c Release

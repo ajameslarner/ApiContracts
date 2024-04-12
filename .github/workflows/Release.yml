@@ -1,10 +1,10 @@
-name: Create Release
+name: Semantic Release Version with GitTools
 on:
   push:
     branches:
       - 'main'
 jobs:
-  Create_Release:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -23,42 +23,28 @@ jobs:
 
       - name: Extract commit messages
         run: |
-          MAJOR_MSG=$(git log --grep='+major' -1 --pretty=%B | sed 's/+major//g')
-          if [ -z "$MAJOR_MSG" ]; then
-              MAJOR_MSG="No major changes in this release."
-          fi
-          echo "MAJOR_MSG=$MAJOR_MSG" >> $GITHUB_ENV
-      
-          MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B | sed 's/+minor//g')
-          if [ -z "$MINOR_MSG" ]; then
-              MINOR_MSG="No minor changes in this release."
-          fi
-          echo "MINOR_MSG=$MINOR_MSG" >> $GITHUB_ENV
-      
-          PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B | sed 's/+patch//g')
-          if [ -z "$PATCH_MSG" ]; then
-              PATCH_MSG="No patch changes in this release."
-          fi
-          echo "PATCH_MSG=$PATCH_MSG" >> $GITHUB_ENV
-          
+          echo "MAJOR_MSG=$(git log --grep='+major' -1 --pretty=%B)" >> $GITHUB_ENV
+          echo "MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B)" >> $GITHUB_ENV
+          echo "PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B)" >> $GITHUB_ENV
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }} # TODO: Change this to a public default GITHUB_TOKEN once the repo goes public
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
           release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
           body: |
-              ## 🚀 Changes in this Release
-              ---
-              ### 💥 Major Changes:
-              - ${{ env.MAJOR_MSG }}
+            ## 🚀 Changes in this Release
+            -----------------------
+            ### 💥 Major Changes:
+            - ${{ env.MAJOR_MSG }}
 
-              ### ✨ Minor Changes:
-              - ${{ env.MINOR_MSG }}
+            ### ✨ Minor Changes:
+            - ${{ env.MINOR_MSG }}
 
-              ### 🐛 Patch Changes:
-              - ${{ env.PATCH_MSG }}
+            ### 🐛 Patch Changes:
+            - ${{ env.PATCH_MSG }}
           draft: false
           prerelease: false

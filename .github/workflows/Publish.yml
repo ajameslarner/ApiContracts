@@ -25,13 +25,11 @@ jobs:
       - name: Use GitVersion
         id: gitversion
         uses: gittools/actions/gitversion/execute@main
-
-      - name: Build Project
-        run: dotnet build ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0
         
       - name: Pack and Push Nuget Package
         run: |
           dotnet restore
           export PACKAGE_VERSION=${{ steps.gitversion.outputs.majorMinorPatch }}
+          dotnet build ApiContracts.csproj --configuration Release -o .
           dotnet pack ApiContracts.csproj -p:Version=${PACKAGE_VERSION} -p:RepositoryUrl="https://github.com/ajameslarner/ApiContracts"  -o .
           dotnet nuget push ApiContracts.${PACKAGE_VERSION}.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json

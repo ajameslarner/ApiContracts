@@ -41,7 +41,6 @@ Upcoming
 
 For More Information
 For more information, please visit GitHub to reach out to the author</PackageReleaseNotes>
-    <PackageIcon>api_contracts_icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/ajameslarner/ApiContracts</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
@@ -56,10 +55,6 @@ For more information, please visit GitHub to reach out to the author</PackageRel
       <PackagePath>\</PackagePath>
     </None>
     <None Update="README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Update="Resources\api_contracts_icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

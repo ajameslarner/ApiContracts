@@ -1,4 +1,4 @@
-name: Semantic Release Version with GitTools
+name: Create Release
 on:
   push:
     branches:

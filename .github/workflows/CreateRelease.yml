@@ -29,22 +29,15 @@ jobs:
       
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: johnyherangi/create-release-notes@main
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }} # TODO: Set this to secrets.GITHUB_TOKEN when the repo changes to public
+            GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+      - uses: actions/create-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
-          release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
-          body: |
-            ## 🚀 Changes in this Release
-            -----------------------
-            ### 💥 Major Changes:
-            - ${{ env.MAJOR_MSG }}
-
-            ### ✨ Minor Changes:
-            - ${{ env.MINOR_MSG }}
-
-            ### 🐛 Patch Changes:
-            - ${{ env.PATCH_MSG }}
-          draft: false
-          prerelease: false
+            tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
+            release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
+            body: ${{ steps.create-release-notes.outputs.release-notes }}
+            draft: false
+            prerelease: false

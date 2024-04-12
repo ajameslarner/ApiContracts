@@ -4,7 +4,7 @@ on:
     branches:
       - 'main'
 jobs:
-  release:
+  Create Release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,15 +29,22 @@ jobs:
       
       - name: Create Release
         id: create_release
-        uses: johnyherangi/create-release-notes@main
+        uses: actions/create-release@v1
         env:
-            GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-      - uses: actions/create-release@v1
-        env:
-            GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }} # TODO: Change this to a public default GITHUB_TOKEN once the repo goes public
         with:
-            tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
-            release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
-            body: ${{ steps.create-release-notes.outputs.release-notes }}
+          tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
+          release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
+            body: |
+              ## 🚀 Changes in this Release
+              ---
+              ### 💥 Major Changes:
+              - ${{ env.MAJOR_MSG }}
+
+              ### ✨ Minor Changes:
+              - ${{ env.MINOR_MSG }}
+
+              ### 🐛 Patch Changes:
+              - ${{ env.PATCH_MSG }}
             draft: false
             prerelease: false

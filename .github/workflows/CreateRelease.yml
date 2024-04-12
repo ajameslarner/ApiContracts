@@ -38,9 +38,9 @@ jobs:
           body: |
             ## What's Changed
             ---
-            ${{ env.MAJOR_MSG != '' && '### 💥 Major Changes:\n- ' || '' }} ${{ env.MAJOR_MSG }}
-            ${{ env.MINOR_MSG != '' && '### ✨ Minor Changes:\n- ' || '' }} ${{ env.MINOR_MSG }}
-            ${{ env.PATCH_MSG != '' && '### 🐛 Patch Changes:\n- ' || '' }} ${{ env.PATCH_MSG }}
+            ${{ env.MAJOR_MSG != '' && join('\n', '### 💥 Major Changes:', env.MAJOR_MSG) || '' }}
+            ${{ env.MINOR_MSG != '' && join('\n', '### ✨ Minor Changes:', env.MINOR_MSG) || '' }}
+            ${{ env.PATCH_MSG != '' && join('\n', '### 🐛 Patch Changes:', env.PATCH_MSG) || '' }}
             
           draft: false
           prerelease: false

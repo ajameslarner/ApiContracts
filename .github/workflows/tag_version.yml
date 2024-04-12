@@ -30,9 +30,7 @@ jobs:
       - name: Get changes
         id: get_changes
         run: |
-          echo "CHANGES<<EOF" >> $GITHUB_ENV
-          git log --pretty=format:"- %s" ${{ github.event.before }}..${{ github.sha }} >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          echo "CHANGES=$(git log --pretty=format:'- %s' ${{ steps.last_release.outputs.result }}..${{ github.sha }})" >> $GITHUB_ENV
 
       - name: Get contributors
         id: get_contributors

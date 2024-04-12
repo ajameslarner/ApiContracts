@@ -21,6 +21,12 @@ jobs:
         id: gitversion
         uses: gittools/actions/gitversion/execute@main
 
+      - name: Extract commit messages
+        run: |
+          echo "MAJOR_MSG=$(git log --grep='feat!:' -1 --pretty=%B)" >> $GITHUB_ENV
+          echo "MINOR_MSG=$(git log --grep='feat:' -1 --pretty=%B)" >> $GITHUB_ENV
+          echo "PATCH_MSG=$(git log --grep='fix:' -1 --pretty=%B)" >> $GITHUB_ENV
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -30,8 +36,15 @@ jobs:
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
           release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
           body: |
-            Changes in this Release
+            ## 🚀 Changes in this Release
             -----------------------
-            ${{ steps.gitversion.outputs.majorMinorPatch }}
+            ### 💥 Major Changes:
+            - ${{ env.MAJOR_MSG }}
+
+            ### ✨ Minor Changes:
+            - ${{ env.MINOR_MSG }}
+
+            ### 🐛 Patch Changes:
+            - ${{ env.PATCH_MSG }}
           draft: false
           prerelease: false

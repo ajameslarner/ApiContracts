@@ -23,9 +23,12 @@ jobs:
 
       - name: Extract commit messages
         run: |
-          MAJOR_MSG=$(git log --grep='+major' -1 --pretty=%B | sed 's/+major//g')
-          MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B | sed 's/+minor//g')
-          PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B | sed 's/+patch//g')
+          MAJOR_COMMIT=$(git log --grep='+major' -1 --pretty=%B || echo "")
+          MINOR_COMMIT=$(git log --grep='+minor' -1 --pretty=%B || echo "")
+          PATCH_COMMIT=$(git log --grep='+patch' -1 --pretty=%B || echo "")
+          MAJOR_MSG=${MAJOR_COMMIT:+$(echo "$MAJOR_COMMIT" | sed 's/+major//g')}
+          MINOR_MSG=${MINOR_COMMIT:+$(echo "$MINOR_COMMIT" | sed 's/+minor//g')}
+          PATCH_MSG=${PATCH_COMMIT:+$(echo "$PATCH_COMMIT" | sed 's/+patch//g')}
           echo "MAJOR_MSG=${MAJOR_MSG:-n/a}" >> $GITHUB_ENV
           echo "MINOR_MSG=${MINOR_MSG:-n/a}" >> $GITHUB_ENV
           echo "PATCH_MSG=${PATCH_MSG:-n/a}" >> $GITHUB_ENV

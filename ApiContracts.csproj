@@ -46,10 +46,6 @@ For more information, please visit GitHub to reach out to the author</PackageRel
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <None Include="..\..\..\Documents\api_contracts_icon.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />

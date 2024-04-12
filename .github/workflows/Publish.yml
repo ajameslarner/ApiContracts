@@ -2,7 +2,7 @@ name: Publish Nuget Package
 on:
   workflow_dispatch:
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 jobs:
   build:

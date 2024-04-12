@@ -19,9 +19,37 @@
     <NeutralLanguage>en-001</NeutralLanguage>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>Release Notes for ApiContracts - Version 1.0.0
+
+Date of Release
+13/04/2024
+
+Overview
+This is the initial MVP release of API Contracts.
+
+Features
+- Feature: Define contracts use the abstract base class and assign your contract service name
+- Feature: Attributes assignable to your endpoint model to define contract specifications
+- Feature: Register the use of ApiContracts on your application build pipeline
+- Feature: Use Swagger/OpenAPI filters to document your contract specifications
+- Feature: String Extensions `ToCamelCase` and `ToPascalCase` included
+
+Upcoming
+- Handle DTOs that contain nested objects using recursion
+- Handle additional content types (such as XML)
+- Improve code documentation
+
+For More Information
+For more information, please visit GitHub to reach out to the author</PackageReleaseNotes>
+    <PackageIcon>api_contracts_icon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/ajameslarner/ApiContracts</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <None Include="..\..\..\Documents\api_contracts_icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
@@ -32,6 +60,10 @@
       <PackagePath>\</PackagePath>
     </None>
     <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Resources\api_contracts_icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

@@ -1,6 +1,10 @@
 name: Publish Nuget Package
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Workflow to be approved"]
+    types:
+      - requested
 env:
   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}

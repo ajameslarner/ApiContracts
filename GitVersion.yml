@@ -1,0 +1,10 @@
+next-version: 1.0.0
+mode: ContinuousDelivery
+branches:
+  master:
+    mode: ContinuousDeployment
+    tag: ''
+commit-message-incrementing: Enabled
+major-version-bump-message: '\+major'
+minor-version-bump-message: '\+minor'
+patch-version-bump-message: '\+patch'

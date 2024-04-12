@@ -1,0 +1,53 @@
+name: Create Release
+on:
+  push:
+    branches:
+      - 'main'
+jobs:
+  Create_Release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.7
+        with:
+          versionSpec: '5.x'
+
+      - name: Use GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@main
+
+      - name: Extract commit messages
+        run: |
+          MAJOR_MSG=$(git log --grep='+major' -1 --pretty=%B | sed 's/+major//g')
+          MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B | sed 's/+minor//g')
+          PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B | sed 's/+patch//g')
+          echo "MAJOR_MSG=${MAJOR_MSG:-n/a}" >> $GITHUB_ENV
+          echo "MINOR_MSG=${MINOR_MSG:-n/a}" >> $GITHUB_ENV
+          echo "PATCH_MSG=${PATCH_MSG:-n/a}" >> $GITHUB_ENV
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }} # TODO: Change this to a public default GITHUB_TOKEN once the repo goes public
+        with:
+          tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
+          release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
+          body: |
+              ## 🚀 Changes in this Release
+              ---
+              ### 💥 Major Changes:
+              - ${{ env.MAJOR_MSG }}
+
+              ### ✨ Minor Changes:
+              - ${{ env.MINOR_MSG }}
+
+              ### 🐛 Patch Changes:
+              - ${{ env.PATCH_MSG }}
+          draft: false
+          prerelease: false

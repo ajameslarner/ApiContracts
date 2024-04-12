@@ -19,29 +19,8 @@
     <NeutralLanguage>en-001</NeutralLanguage>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>Release Notes for ApiContracts - Version 1.0.0
-
-Date of Release
-13/04/2024
-
-Overview
-This is the initial MVP release of API Contracts.
-
-Features
-- Feature: Define contracts use the abstract base class and assign your contract service name
-- Feature: Attributes assignable to your endpoint model to define contract specifications
-- Feature: Register the use of ApiContracts on your application build pipeline
-- Feature: Use Swagger/OpenAPI filters to document your contract specifications
-- Feature: String Extensions `ToCamelCase` and `ToPascalCase` included
-
-Upcoming
-- Handle DTOs that contain nested objects using recursion
-- Handle additional content types (such as XML)
-- Improve code documentation
-
-For More Information
-For more information, please visit GitHub to reach out to the author</PackageReleaseNotes>
-    <PackageProjectUrl>https://github.com/ajameslarner/ApiContracts</PackageProjectUrl>
+    <PackageIcon>api-contracts.png</PackageIcon>
+    <PackageProjectUrl>https://www.nuget.org/packages/ApiContracts</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -55,6 +34,10 @@ For more information, please visit GitHub to reach out to the author</PackageRel
       <PackagePath>\</PackagePath>
     </None>
     <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Resources\api-contracts.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

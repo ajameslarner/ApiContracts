@@ -1,10 +1,10 @@
-name: Semantic Release Version with GitTools
+name: Semantic Release Version
 on:
   push:
     branches:
       - 'main'
 jobs:
-  release:
+  Release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -23,9 +23,23 @@ jobs:
 
       - name: Extract commit messages
         run: |
-          echo "MAJOR_MSG=$(git log --grep='+major' -1 --pretty=%B)" >> $GITHUB_ENV
-          echo "MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B)" >> $GITHUB_ENV
-          echo "PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B)" >> $GITHUB_ENV
+          MAJOR_MSG=$(git log --grep='+major' --no-merges -1 --pretty=%B | sed 's/+major//g')
+          if [ -z "$MAJOR_MSG" ]; then
+              MAJOR_MSG="No major changes in this release."
+          fi
+          echo "MAJOR_MSG=$MAJOR_MSG" >> $GITHUB_ENV
+      
+          MINOR_MSG=$(git log --grep='+minor' --no-merges -1 --pretty=%B | sed 's/+minor//g')
+          if [ -z "$MINOR_MSG" ]; then
+              MINOR_MSG="No minor changes in this release."
+          fi
+          echo "MINOR_MSG=$MINOR_MSG" >> $GITHUB_ENV
+      
+          PATCH_MSG=$(git log --grep='+patch' --no-merges -1 --pretty=%B | sed 's/+patch//g')
+          if [ -z "$PATCH_MSG" ]; then
+              PATCH_MSG="No patch changes in this release."
+          fi
+          echo "PATCH_MSG=$PATCH_MSG" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release

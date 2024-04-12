@@ -1,4 +1,4 @@
-name: Tag Version
+name: Semantic Release Version with GitTools
 on:
   push:
     branches:
@@ -7,16 +7,25 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v5
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.7
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create a GitHub release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          versionSpec: '5.x'
+
+      - name: Use GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@main
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.tag_version.outputs.new_tag }}
-          release_name: ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
+          body: |
+            Changes in this Release
+            -----------------------
+            ${{ steps.gitversion.outputs.majorMinorPatch }}
+          tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
+          token: ${{ secrets.GITHUB_TOKEN }}

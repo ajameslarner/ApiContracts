@@ -26,18 +26,6 @@ jobs:
           echo "MAJOR_MSG=$(git log --grep='+major' -1 --pretty=%B)" >> $GITHUB_ENV
           echo "MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B)" >> $GITHUB_ENV
           echo "PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B)" >> $GITHUB_ENV
-
-      - name: Get changes
-        id: get_changes
-        run: |
-          echo "CHANGES=$(git log --pretty=format:'- %s' ${{ steps.last_release.outputs.result }}..${{ github.sha }})" >> $GITHUB_ENV
-
-      - name: Get contributors
-        id: get_contributors
-        run: |
-          echo "CONTRIBUTORS<<EOF" >> $GITHUB_ENV
-          git log --pretty=format:"- %an" ${{ github.event.before }}..${{ github.sha }} | sort | uniq >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
       
       - name: Create Release
         id: create_release
@@ -49,11 +37,10 @@ jobs:
           release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
           body: |
             ## What's Changed
-            ${{ env.CHANGES }}
-      
-            ## New Contributors
-            ${{ env.CONTRIBUTORS }}
-      
-            Full Changelog
+            ---
+            ${{ env.MAJOR_MSG != '' && '### 💥 Major Changes:\n- ' || '' }} ${{ env.MAJOR_MSG }}
+            ${{ env.MINOR_MSG != '' && '### ✨ Minor Changes:\n- ' || '' }} ${{ env.MINOR_MSG }}
+            ${{ env.PATCH_MSG != '' && '### 🐛 Patch Changes:\n- ' || '' }} ${{ env.PATCH_MSG }}
+            
           draft: false
           prerelease: false

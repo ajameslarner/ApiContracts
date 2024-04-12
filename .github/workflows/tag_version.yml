@@ -30,4 +30,4 @@ jobs:
             -----------------------
             ${{ steps.gitversion.outputs.majorMinorPatch }}
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}

@@ -23,9 +23,9 @@ jobs:
 
       - name: Extract commit messages
         run: |
-          echo "MAJOR_MSG=$(git log --grep='feat!:' -1 --pretty=%B)" >> $GITHUB_ENV
-          echo "MINOR_MSG=$(git log --grep='feat:' -1 --pretty=%B)" >> $GITHUB_ENV
-          echo "PATCH_MSG=$(git log --grep='fix:' -1 --pretty=%B)" >> $GITHUB_ENV
+          echo "MAJOR_MSG=$(git log --grep='+major' -1 --pretty=%B)" >> $GITHUB_ENV
+          echo "MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B)" >> $GITHUB_ENV
+          echo "PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B)" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release

@@ -27,24 +27,35 @@ jobs:
           echo "MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B)" >> $GITHUB_ENV
           echo "PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B)" >> $GITHUB_ENV
 
+      - name: Get changes
+        id: get_changes
+        run: |
+          echo "CHANGES<<EOF" >> $GITHUB_ENV
+          git log --pretty=format:"- %s" ${{ github.event.before }}..${{ github.sha }} >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Get contributors
+        id: get_contributors
+        run: |
+          echo "CONTRIBUTORS<<EOF" >> $GITHUB_ENV
+          git log --pretty=format:"- %an" ${{ github.event.before }}..${{ github.sha }} | sort | uniq >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }} # TODO: Set this to secrets.GITHUB_TOKEN when the repo changes to public
         with:
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
           release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
           body: |
-            ## 🚀 Changes in this Release
-            -----------------------
-            ### 💥 Major Changes:
-            - ${{ env.MAJOR_MSG }}
-
-            ### ✨ Minor Changes:
-            - ${{ env.MINOR_MSG }}
-
-            ### 🐛 Patch Changes:
-            - ${{ env.PATCH_MSG }}
+            ## What's Changed
+            ${{ env.CHANGES }}
+      
+            ## New Contributors
+            ${{ env.CONTRIBUTORS }}
+      
+            Full Changelog
           draft: false
           prerelease: false

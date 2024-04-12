@@ -48,6 +48,8 @@ public class ContractMiddleware(RequestDelegate next)
     }
 
     // TODO: Refactor this
+    // TODO: Use recursion to validate nested objects
+    // TODO: Return relevant status codes instead of 400 for all
     private static void ValidateContract(object? model, JsonElement body, string? service)
     {
         ArgumentNullException.ThrowIfNull(model, nameof(model));
@@ -102,7 +104,6 @@ public class ContractMiddleware(RequestDelegate next)
             }
         }
 
-        // Check if there are any extra properties in the request body that do not match with the model
         foreach (var element in body.EnumerateObject())
         {
             var propertyName = element.Name.ToPascalCase();

@@ -4,7 +4,7 @@ on:
     branches:
       - 'main'
 jobs:
-  Create Release:
+  Create_Release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -23,9 +23,12 @@ jobs:
 
       - name: Extract commit messages
         run: |
-          echo "MAJOR_MSG=$(git log --grep='+major' -1 --pretty=%B)" >> $GITHUB_ENV
-          echo "MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B)" >> $GITHUB_ENV
-          echo "PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B)" >> $GITHUB_ENV
+          MAJOR_MSG=$(git log --grep='+major' -1 --pretty=%B | sed 's/+major//g')
+          MINOR_MSG=$(git log --grep='+minor' -1 --pretty=%B | sed 's/+minor//g')
+          PATCH_MSG=$(git log --grep='+patch' -1 --pretty=%B | sed 's/+patch//g')
+          echo "MAJOR_MSG=${MAJOR_MSG:-n/a}" >> $GITHUB_ENV
+          echo "MINOR_MSG=${MINOR_MSG:-n/a}" >> $GITHUB_ENV
+          echo "PATCH_MSG=${PATCH_MSG:-n/a}" >> $GITHUB_ENV
       
       - name: Create Release
         id: create_release
@@ -35,7 +38,7 @@ jobs:
         with:
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
           release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
-            body: |
+          body: |
               ## 🚀 Changes in this Release
               ---
               ### 💥 Major Changes:
@@ -46,5 +49,5 @@ jobs:
 
               ### 🐛 Patch Changes:
               - ${{ env.PATCH_MSG }}
-            draft: false
-            prerelease: false
+          draft: false
+          prerelease: false

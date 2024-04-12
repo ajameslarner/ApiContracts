@@ -28,7 +28,7 @@ jobs:
         uses: gittools/actions/gitversion/execute@main
 
       - name: Build Project
-        run: dotnet build ApiContracts.csproj --configuration Release --output ./bin/Release/net6.0
+        run: dotnet build ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0
 
       - name: Pack and Push Nuget Package
         run: |

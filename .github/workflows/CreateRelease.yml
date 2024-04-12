@@ -36,11 +36,15 @@ jobs:
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
           release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
           body: |
-            ## What's Changed
-            ---
-            ${{ env.MAJOR_MSG != '' && join('\n', '### 💥 Major Changes:', env.MAJOR_MSG) || '' }}
-            ${{ env.MINOR_MSG != '' && join('\n', '### ✨ Minor Changes:', env.MINOR_MSG) || '' }}
-            ${{ env.PATCH_MSG != '' && join('\n', '### 🐛 Patch Changes:', env.PATCH_MSG) || '' }}
-            
+            ## 🚀 Changes in this Release
+            -----------------------
+            ### 💥 Major Changes:
+            - ${{ env.MAJOR_MSG }}
+
+            ### ✨ Minor Changes:
+            - ${{ env.MINOR_MSG }}
+
+            ### 🐛 Patch Changes:
+            - ${{ env.PATCH_MSG }}
           draft: false
           prerelease: false

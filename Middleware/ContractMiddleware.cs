@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Http.Metadata;
 using ApiContracts.Models.Abstract;
 using ApiContracts.Extensions;
 using ApiContracts.Constants;
+using ApiContracts.Validators;
 
 namespace ApiContracts.Middleware;
 
 public class ContractMiddleware(RequestDelegate next)
 {
     private readonly RequestDelegate _next = next;
+    private readonly ContractValidator _contractValidator = new();
 
     public async Task Invoke(HttpContext context)
     {
@@ -24,7 +26,7 @@ public class ContractMiddleware(RequestDelegate next)
             return;
         }
 
-        if (!context.Request.Headers.TryGetValue(Headers.ContractName, out StringValues contractName))
+        if (!context.Request.Headers.TryGetValue(Headers.ContractName, out var contractName))
         {
             context.Response.StatusCode = 400;
             context.Response.ContentType = "text/plain";
@@ -34,9 +36,9 @@ public class ContractMiddleware(RequestDelegate next)
 
         var body = await DeserializeRequestBody(context);
 
-        try 
+        try
         {
-            ValidateContract(model, body, contractName);
+            _contractValidator.Validate(model, body, contractName);
             await _next(context);
         }
         catch (Exception ex)
@@ -45,76 +47,6 @@ public class ContractMiddleware(RequestDelegate next)
             context.Response.ContentType = "text/plain";
             await context.Response.WriteAsync(ex.Message);
         }
-    }
-
-    // TODO: Refactor this
-    // TODO: Use recursion to validate nested objects
-    // TODO: Return relevant status codes instead of 400 for all
-    private static void ValidateContract(object? model, JsonElement body, string? service)
-    {
-        ArgumentNullException.ThrowIfNull(model, nameof(model));
-        ArgumentNullException.ThrowIfNull(service, nameof(service));
-
-        var properties = model.GetType().GetProperties()
-            .Where(prop => Attribute.IsDefined(prop, typeof(AcceptanceAttribute<>)));
-
-        var errors = new List<string>();
-
-        foreach (var property in properties)
-        {
-            var attributes = property.GetCustomAttributes(typeof(AcceptanceAttribute<>));
-
-            if (!attributes.Any())
-                errors.Add($"No 'AcceptanceAttribute' found for property '{property.Name}'");
-
-            if (body.TryGetProperty(property.Name.ToCamelCase(), out var _) && !attributes.Any(attr => (attr.GetType().GetProperty("Contract")?.GetValue(attr) as Contract)?.Service == service))
-            {
-                errors.Add($"The property '{property.Name}' is not included as part in acceptance of the contract: '{service}'");
-                continue;
-            }
-
-            foreach (var attribute in attributes)
-            {
-                var contractProperty = attribute.GetType().GetProperty("Contract");
-                var contract = contractProperty?.GetValue(attribute) as Contract;
-
-                if (contract?.Service != service)
-                    continue;
-
-                if (!IsCamelCase(body))
-                {
-                    errors.Add("Request body must be in camelCase");
-                    continue;
-                }
-
-                if (!body.TryGetProperty(property.Name.ToCamelCase(), out var propertyValue))
-                {
-                    errors.Add($"Property '{property.Name.ToCamelCase()}' not found in request body to fulfill the contract: '{contract.Service}'");
-                    continue;
-                }
-
-                var requiredProperty = attribute.GetType().GetProperty("Required");
-                var required = requiredProperty?.GetValue(attribute) as bool?;
-
-                if (required == true && (propertyValue.ValueKind == JsonValueKind.Null || propertyValue.ValueKind == JsonValueKind.Undefined))
-                {
-                    errors.Add($"Property value for '{property.Name.ToCamelCase()}' is required to fulfill the contract: '{contract.Service}'");
-                    continue;
-                }
-            }
-        }
-
-        foreach (var element in body.EnumerateObject())
-        {
-            var propertyName = element.Name.ToPascalCase();
-            if (!properties.Any(p => p.Name == propertyName))
-            {
-                errors.Add($"Extra property '{element.Name}' found in request body that does not match with the '{service}' contract in the model.");
-            }
-        }
-
-        if (errors.Any())
-            throw new ArgumentException(string.Join(Environment.NewLine, errors));
     }
 
     // TODO: Need to handle xml and other content types

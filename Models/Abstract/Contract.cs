@@ -2,5 +2,5 @@
 
 public abstract class Contract
 {
-    public abstract string Service { get; }
+    public abstract string Name { get; }
 }

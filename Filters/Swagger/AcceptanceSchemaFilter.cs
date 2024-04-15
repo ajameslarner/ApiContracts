@@ -29,7 +29,9 @@ public class AcceptanceSchemaFilter : ISchemaFilter
             foreach (var attribute in attributes)
             {
                 var contract = attribute?.GetType()?.GetProperty("Contract")?.GetValue(attribute) as Contract;
-                contracts.Add(contract?.Service);
+
+                if (contract != null)
+                    contracts.Add(contract.Name);
             }
             propertySchema.Description = "Contracts: " + string.Join(", ", contracts);
         }

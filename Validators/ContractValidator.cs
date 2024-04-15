@@ -1,9 +1,7 @@
 ﻿using ApiContracts.Extensions;
 using ApiContracts.Extensions.Attributes;
+using ApiContracts.Extensions.Exceptions;
 using ApiContracts.Models.Abstract;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 
@@ -11,49 +9,79 @@ namespace ApiContracts.Validators
 {
     public class ContractValidator
     {
-        private Dictionary<string, PropertyInfo> _cachedModelProperties;
-        private Dictionary<string, JsonProperty> _cachedBodyProperties;
-        private string _contractName;
+        private Dictionary<string, PropertyInfo> _cachedModelProperties = [];
+        private Dictionary<string, JsonProperty> _cachedBodyProperties = [];
+        private IEnumerable<string> _cachedMissingProperties = [];
+        private IEnumerable<string> _cachedExtraProperties = [];
 
-        private void Setup(object model, JsonElement body, string contractName)
+        private void CacheProperties(object model, JsonElement body, string contractName)
         {
             _cachedModelProperties = model.GetType().GetProperties()
-                .Where(prop => prop != null && Attribute.IsDefined(prop, typeof(AcceptanceAttribute<>)))
+                .Where(prop => prop != null && prop.GetCustomAttributes(false)
+                .Any(attr => attr.GetType().IsGenericType &&
+                     attr.GetType().GetGenericTypeDefinition() == typeof(AcceptanceAttribute<>) &&
+                     (attr as dynamic).Contract.Name == contractName))
                 .ToDictionary(prop => prop.Name.ToCamelCase(), prop => prop);
 
             _cachedBodyProperties = body.EnumerateObject()
-                .ToDictionary(prop => prop.Name, prop => prop);
+                .ToDictionary(prop => prop.Name.ToCamelCase(), prop => prop);
 
-            _contractName = contractName;
+            _cachedMissingProperties = _cachedModelProperties.Keys.Except(_cachedBodyProperties.Keys);
+
+            _cachedExtraProperties = _cachedBodyProperties.Keys.Except(_cachedModelProperties.Keys);
         }
 
+        //TODO - Validate exclusively against the contract, basic contract is valid with all properties present, should be invalid
         public void Validate(object model, JsonElement body, string contractName)
         {
-            Setup(model, body, contractName);
+            CacheProperties(model, body, contractName);
 
-            foreach (var bodyProp in _cachedBodyProperties)
+            if (_cachedModelProperties.Count == 0)
+                throw new ContractValidationFailedException(400, $"No properties found on the model that match the contract: '{contractName}'");
+
+            if (_cachedMissingProperties.Any())
+                throw new ContractValidationFailedException(400, $"The following properties are missing from the request body: {string.Join(", ", _cachedMissingProperties)}");
+            
+            if (_cachedExtraProperties.Any())
+                throw new ContractValidationFailedException(400, $"The following properties are not part of the acceptance criteria for '{contractName}': {string.Join(", ", _cachedExtraProperties)}");
+
+            foreach (var modelProperty in _cachedModelProperties)
             {
-                if (!_cachedModelProperties.TryGetValue(bodyProp.Key, out PropertyInfo? modelProp))
-                    throw new Exception($"Extra property '{bodyProp.Key}' found in request body that is not part of acceptance on the contract: '{_contractName}'");
+                if (!_cachedBodyProperties.TryGetValue(modelProperty.Key, out JsonProperty bodyProperty))
+                    throw new ContractValidationFailedException(400, $"The property '{modelProperty.Key}' is missing from the request body as declared in the acceptance criteria on the contract: '{contractName}'");
 
-                var attributes = modelProp.GetCustomAttributes(typeof(AcceptanceAttribute<>));
+                var attribute = modelProperty.Value.GetCustomAttributes(typeof(AcceptanceAttribute<>))
+                    .FirstOrDefault(attr => attr?.GetType()?.GetProperty("Required")?.GetValue(attr) as bool? == true);
 
-                foreach (var attribute in attributes)
+                if (attribute != null && bodyProperty.Value.ValueKind == JsonValueKind.Null)
+                    throw new ContractValidationFailedException(400, $"Property value for '{bodyProperty.Name.ToCamelCase()}' is required to fulfill the contract: '{contractName}'");
+
+                if (bodyProperty.Value.ValueKind == JsonValueKind.Array)
                 {
-                    var contractProperty = attribute.GetType().GetProperty("Contract");
-                    var contract = contractProperty?.GetValue(attribute) as Contract;
+                    var jsonArray = bodyProperty.Value.GetRawText();
+                    var nestedArray = JsonDocument.Parse(jsonArray).RootElement;
 
-                    if (contract?.Service != _contractName)
-                        continue;
+                    foreach (var item in nestedArray.EnumerateArray())
+                    {
+                        if (item.ValueKind != JsonValueKind.Object)
+                            continue;
 
-                    var requiredProperty = attribute.GetType().GetProperty("Required");
-                    var required = requiredProperty?.GetValue(attribute) as bool?;
+                        var modelObject = Activator.CreateInstance(modelProperty.Value.PropertyType)
+                            ?? throw new ContractValidationFailedException(500, $"Failed to create instance of '{modelProperty.Value.PropertyType.Name}' for property '{modelProperty.Value.Name}'");
 
-                    if (required == true && bodyProp.Value.Value.ValueKind == JsonValueKind.Null)
-                        throw new Exception($"Property value for '{modelProp.Name.ToCamelCase()}' is required to fulfill the contract: '{contract.Service}'");
+                        Validate(modelObject, item, contractName);
+                    }
+                }
 
-                    if (bodyProp.Value.Value.ValueKind == JsonValueKind.Object)
-                        Validate(Activator.CreateInstance(modelProp.PropertyType), bodyProp.Value.Value, contract.Service); // TODO: Get value from bodyProp.Value.Value to pass to recursive call
+                if (bodyProperty.Value.ValueKind == JsonValueKind.Object)
+                {
+                    var jsonObject = bodyProperty.Value.GetRawText();
+                    var nestedObject = JsonDocument.Parse(jsonObject).RootElement;
+
+                    var modelObject = Activator.CreateInstance(modelProperty.Value.PropertyType) 
+                        ?? throw new ContractValidationFailedException(500, $"Failed to create instance of '{modelProperty.Value.PropertyType.Name}' for property '{modelProperty.Value.Name}'");
+                        
+                    Validate(modelObject, nestedObject, contractName);
                 }
             }
         }

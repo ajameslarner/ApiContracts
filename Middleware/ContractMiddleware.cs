@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Text.Json;
-using Microsoft.Extensions.Primitives;
 using ApiContracts.Extensions.Attributes;
-using System.Reflection;
 using Microsoft.AspNetCore.Http.Metadata;
-using ApiContracts.Models.Abstract;
 using ApiContracts.Extensions;
 using ApiContracts.Constants;
 using ApiContracts.Validators;
+using ApiContracts.Extensions.Exceptions;
 
 namespace ApiContracts.Middleware;
 
@@ -41,9 +39,9 @@ public class ContractMiddleware(RequestDelegate next)
             _contractValidator.Validate(model, body, contractName);
             await _next(context);
         }
-        catch (Exception ex)
+        catch (ContractValidationFailedException ex)
         {
-            context.Response.StatusCode = 400;
+            context.Response.StatusCode = ex.ErrorCode;
             context.Response.ContentType = "text/plain";
             await context.Response.WriteAsync(ex.Message);
         }
@@ -70,22 +68,6 @@ public class ContractMiddleware(RequestDelegate next)
             return default;
 
         return JsonDocument.Parse(body).RootElement;
-    }
-
-    private static bool IsCamelCase(JsonElement jsonElement)
-    {
-        foreach (var property in jsonElement.EnumerateObject())
-        {
-            string propertyName = property.Name;
-            string camelCasePropertyName = propertyName.ToCamelCase();
-
-            if (propertyName != camelCasePropertyName)
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private static object? GetContractBoundModel(HttpContext context)

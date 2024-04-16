@@ -39,6 +39,10 @@ jobs:
         with:
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
           release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
-          body: ${{ steps.changes.outputs.log }}
+          body: |
+            ## 🚀 Changes in this Release
+            -----------------------
+            ${{ steps.changes.outputs.log }}
+            
           draft: false
           prerelease: false

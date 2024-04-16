@@ -40,7 +40,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Test Project
-        run: dotnet test tests/UnitTests/ApiContracts.UnitTests.csproj --no-build --verbosity normal
+        run: dotnet test tests/UnitTests/ApiContracts.UnitTests.csproj --verbosity normal
 
   Publish:
     needs: Test

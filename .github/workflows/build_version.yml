@@ -24,25 +24,11 @@ jobs:
         id: gitversion
         uses: gittools/actions/gitversion/execute@main
 
-      - name: Extract commit messages
-        run: |
-          MAJOR_MSG=$(git log --grep='+major' --no-merges -1 --pretty=%B | sed 's/+major//g')
-          if [ -z "$MAJOR_MSG" ]; then
-              MAJOR_MSG="No major changes in this release."
-          fi
-          echo "MAJOR_MSG=$MAJOR_MSG" >> $GITHUB_ENV
-      
-          MINOR_MSG=$(git log --grep='+minor' --no-merges -1 --pretty=%B | sed 's/+minor//g')
-          if [ -z "$MINOR_MSG" ]; then
-              MINOR_MSG="No minor changes in this release."
-          fi
-          echo "MINOR_MSG=$MINOR_MSG" >> $GITHUB_ENV
-      
-          OTHER_MSG=$(git log --no-merges -1 --pretty=%B)
-          if [ -z "$OTHER_MSG" ]; then
-              OTHER_MSG="No other changes in this release."
-          fi
-          echo "OTHER_MSG=$OTHER_MSG" >> $GITHUB_ENV
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: Create Release
         id: create_release
@@ -52,16 +38,6 @@ jobs:
         with:
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
           release_name: Release ${{ steps.gitversion.outputs.majorMinorPatch }}
-          body: |
-            ## 🚀 Changes in this Release
-            -----------------------
-            ### 💥 Major Changes:
-            - ${{ env.MAJOR_MSG }}
-
-            ### ✨ Minor Changes:
-            - ${{ env.MINOR_MSG }}
-
-            ### 📝 Other Changes:
-            - ${{ env.OTHER_MSG }}
+          body: ${{steps.github_release.outputs.changelog}}
           draft: false
           prerelease: false

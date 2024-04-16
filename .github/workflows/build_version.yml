@@ -8,8 +8,9 @@ on:
   workflow_dispatch:
   
 jobs:
-  Release:
-    if: github.event.pull_request.merged == true
+  release:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    name: Build Version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

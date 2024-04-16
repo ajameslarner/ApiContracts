@@ -5,7 +5,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 jobs:
-  build:
+  Build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -17,20 +17,12 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '8.0.x'
-
-      - name: Fetch Latest Tag
-        id: latesttag
-        run: echo "::set-output name=version::$(git describe --tags `git rev-list --tags --max-count=1`)"
-
-      - name: Update Version in Package
-        run: |
-          sed -i 's/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>'"${{ steps.latesttag.outputs.version }}"'<\/Version>/g' ApiContracts.csproj
-
+          
       - name: Build Project
         run: dotnet build ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0
 
-  test:
-    needs: build
+  Test:
+    needs: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -46,8 +38,8 @@ jobs:
       - name: Test Project
         run: dotnet test ApiContracts.csproj --no-build --verbosity normal
 
-  publish:
-    needs: test
+  Publish:
+    needs: Test
     runs-on: ubuntu-latest
     environment: 
       name: deployment

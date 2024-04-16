@@ -71,12 +71,9 @@ jobs:
       - name: Update Version in Package
         run: |
           sed -i 's/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>'"${{ steps.latesttag.outputs.version }}"'<\/AssemblyVersion>/g' src/ApiContracts/ApiContracts.csproj
-          
-      - name: Build Project
-        run: dotnet build src/ApiContracts/ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0
 
       - name: Pack and Push Nuget Package
         run: |
           export PACKAGE_VERSION=${{ steps.gitversion.outputs.majorMinorPatch }}
-          dotnet pack src/ApiContracts/ApiContracts.csproj -p:Version=${PACKAGE_VERSION} -p:RepositoryUrl="https://github.com/ajameslarner/ApiContracts"  -o .
+          dotnet pack src/ApiContracts/ApiContracts.csproj -p:Version=${PACKAGE_VERSION} -p:RepositoryUrl="https://github.com/ajameslarner/ApiContracts"  -o build
           dotnet nuget push build/ApiContracts.${PACKAGE_VERSION}.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json

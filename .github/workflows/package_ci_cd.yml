@@ -44,7 +44,7 @@ jobs:
         run: dotnet test tests/UnitTests/ApiContracts.UnitTests.csproj --verbosity normal
 
   deploy-alpha:
-    if: github.event.label.name == 'alpha'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'alpha'
     needs: Test
     name: Deploy Alpha
     runs-on: ubuntu-latest
@@ -81,7 +81,7 @@ jobs:
           dotnet nuget push build/ApiContracts.${PACKAGE_VERSION}.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json
 
   deploy-beta:
-    if: github.event.label.name == 'beta'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'beta'
     needs: Test
     name: Deploy Beta
     runs-on: ubuntu-latest
@@ -118,7 +118,7 @@ jobs:
           dotnet nuget push build/ApiContracts.${PACKAGE_VERSION}.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json
 
   deploy-release:
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     needs: Test
     name: Deploy Release
     runs-on: ubuntu-latest

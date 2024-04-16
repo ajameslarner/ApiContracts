@@ -5,6 +5,8 @@ on:
       - closed
     branches:
       - 'main'
+  workflow_dispatch:
+  
 jobs:
   Release:
     if: github.event.pull_request.merged == true

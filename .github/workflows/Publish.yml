@@ -62,7 +62,10 @@ jobs:
 
       - name: Use GitVersion
         id: gitversion
-        uses: gittools/actions/gitversion/execute@main          
+        uses: gittools/actions/gitversion/execute@main
+
+      - name: Build Project
+        run: dotnet build src/ApiContracts/ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0
 
       - name: Pack and Push Nuget Package
         run: |

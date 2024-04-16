@@ -1,6 +1,6 @@
 # ApiContracts
 
-[![Package CI & CD](https://github.com/ajameslarner/ApiContracts/actions/workflows/package_ci_cd.yml/badge.svg?branch=main)](https://github.com/ajameslarner/ApiContracts/actions/workflows/package_ci_cd.yml)
+[![Package CI & CD](https://github.com/ajameslarner/ApiContracts/actions/workflows/package_ci_cd.yml/badge.svg)](https://github.com/ajameslarner/ApiContracts/actions/workflows/package_ci_cd.yml)
 [![Build Version](https://github.com/ajameslarner/ApiContracts/actions/workflows/build_version.yml/badge.svg?branch=main)](https://github.com/ajameslarner/ApiContracts/actions/workflows/build_version.yml)
 
 

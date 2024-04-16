@@ -1,4 +1,4 @@
-name: Publish Pre-release Nuget Package
+name: Publish Nuget Package [Beta]
 on:
   pull_request:
     types: [labeled]

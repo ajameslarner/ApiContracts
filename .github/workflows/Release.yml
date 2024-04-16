@@ -1,10 +1,13 @@
 name: Semantic Release Version
 on:
   pull_request:
+    types:
+      - closed
     branches:
       - 'main'
 jobs:
   Release:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,11 +38,11 @@ jobs:
           fi
           echo "MINOR_MSG=$MINOR_MSG" >> $GITHUB_ENV
       
-          PATCH_MSG=$(git log --grep='+patch' --no-merges -1 --pretty=%B | sed 's/+patch//g')
-          if [ -z "$PATCH_MSG" ]; then
-              PATCH_MSG="No patch changes in this release."
+          OTHER_MSG=$(git log --no-merges -1 --pretty=%B)
+          if [ -z "$OTHER_MSG" ]; then
+              OTHER_MSG="No other changes in this release."
           fi
-          echo "PATCH_MSG=$PATCH_MSG" >> $GITHUB_ENV
+          echo "OTHER_MSG=$OTHER_MSG" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
@@ -58,7 +61,7 @@ jobs:
             ### ✨ Minor Changes:
             - ${{ env.MINOR_MSG }}
 
-            ### 🐛 Patch Changes:
-            - ${{ env.PATCH_MSG }}
+            ### 📝 Other Changes:
+            - ${{ env.OTHER_MSG }}
           draft: false
           prerelease: false

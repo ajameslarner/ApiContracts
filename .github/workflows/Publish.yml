@@ -18,6 +18,51 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Fetch Latest Tag
+        id: latesttag
+        run: echo "::set-output name=version::$(git describe --tags `git rev-list --tags --max-count=1`)"
+
+      - name: Update Version in Package
+        run: |
+          sed -i 's/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>'"${{ steps.latesttag.outputs.version }}"'<\/Version>/g' ApiContracts.csproj
+
+      - name: Build Project
+        run: dotnet build ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup dotnet Runtime
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Test Project
+        run: dotnet test ApiContracts.csproj --no-build --verbosity normal
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: 
+      name: deployment
+      url: ${{ steps.gitversion.outputs.majorMinorPatch }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup dotnet Runtime
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.0.x'
+
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.9.7
         with:
@@ -26,9 +71,6 @@ jobs:
       - name: Use GitVersion
         id: gitversion
         uses: gittools/actions/gitversion/execute@main
-
-      - name: Build Project
-        run: dotnet build ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0
 
       - name: Pack and Push Nuget Package
         run: |

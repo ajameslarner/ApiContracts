@@ -1,4 +1,8 @@
 ﻿namespace ApiContracts.Constants;
+
+/// <summary>
+/// The headers class that contains the header constants.
+/// </summary>
 public static class Headers
 {
     /// <summary>

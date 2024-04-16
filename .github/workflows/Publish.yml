@@ -20,7 +20,7 @@ jobs:
 
       - name: Update Version in Package
         run: |
-          sed -i 's/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>'"${{ steps.latesttag.outputs.version }}"'<\/Version>/g' src/ApiContracts/ApiContracts.csproj
+          sed -i 's/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>'"${{ steps.latesttag.outputs.version }}"'<\/AssemblyVersion>/g' src/ApiContracts/ApiContracts.csproj
           
       - name: Build Project
         run: dotnet build src/ApiContracts/ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0

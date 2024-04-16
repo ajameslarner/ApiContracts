@@ -72,4 +72,4 @@ jobs:
           export PACKAGE_VERSION=${{ steps.gitversion.outputs.majorMinorPatch }}
           sed -i 's/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>'"${PACKAGE_VERSION}"'<\/AssemblyVersion>/g' src/ApiContracts/ApiContracts.csproj
           dotnet pack src/ApiContracts/ApiContracts.csproj -p:Version=${PACKAGE_VERSION} -p:RepositoryUrl="https://github.com/ajameslarner/ApiContracts" -o build
-          dotnet nuget push build/ApiContracts.${PACKAGE_VERSION}.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json
+          dotnet nuget push src/build/ApiContracts.${PACKAGE_VERSION}.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json

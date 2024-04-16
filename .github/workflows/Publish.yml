@@ -65,11 +65,11 @@ jobs:
         uses: gittools/actions/gitversion/execute@main
 
       - name: Build Project
-        run: dotnet build src/ApiContracts/ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0
+        run: dotnet build src/ApiContracts/ApiContracts.csproj --configuration Release --output bin/Release/net8.0
 
       - name: Pack and Push Nuget Package
         run: |
           export PACKAGE_VERSION=${{ steps.gitversion.outputs.majorMinorPatch }}
           sed -i 's/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>'"${PACKAGE_VERSION}"'<\/AssemblyVersion>/g' src/ApiContracts/ApiContracts.csproj
-          dotnet pack ApiContracts.csproj -p:Version=${PACKAGE_VERSION} -p:RepositoryUrl="https://github.com/ajameslarner/ApiContracts" -o build
+          dotnet pack src/ApiContract/ApiContracts.csproj -p:Version=${PACKAGE_VERSION} -p:RepositoryUrl="https://github.com/ajameslarner/ApiContracts" -o build
           dotnet nuget push build/ApiContracts.${PACKAGE_VERSION}.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json

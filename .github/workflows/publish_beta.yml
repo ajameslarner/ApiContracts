@@ -10,7 +10,7 @@ env:
 
 jobs:
   Build:
-    if: github.event.label.name == 'pre-release'
+    if: github.event.label.name == 'beta'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: NuGet
-      url: ${{ steps.gitversion.outputs.majorMinorPatch }}
+      url: ${{ steps.gitversion.outputs.majorMinorPatch }}-beta.${{ steps.gitversion.outputs.PreReleaseNumber }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -70,10 +70,10 @@ jobs:
         uses: gittools/actions/gitversion/execute@main
         
       - name: Build Project
-        run: dotnet build /p:Version=${{ steps.gitversion.outputs.majorMinorPatch }} src/ApiContracts/ApiContracts.csproj --configuration Release --output ./src/ApiContracts/bin/Release/net8.0
+        run: dotnet build /p:Version=${{ steps.gitversion.outputs.majorMinorPatch }}-beta.${{ steps.gitversion.outputs.PreReleaseNumber }} src/ApiContracts/ApiContracts.csproj --configuration Release --output ./src/ApiContracts/bin/Release/net8.0
 
       - name: Pack and Push Nuget Package
         run: |
-          export PACKAGE_VERSION=${{ steps.gitversion.outputs.majorMinorPatch }}
+          export PACKAGE_VERSION=${{ steps.gitversion.outputs.majorMinorPatch }}-beta.${{ steps.gitversion.outputs.PreReleaseNumber }}
           dotnet pack src/ApiContracts/ApiContracts.csproj -p:Version=${PACKAGE_VERSION} -p:RepositoryUrl="https://github.com/ajameslarner/ApiContracts" -o build
           dotnet nuget push build/ApiContracts.${PACKAGE_VERSION}.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json

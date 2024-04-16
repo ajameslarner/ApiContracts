@@ -17,6 +17,10 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '8.0.x'
+
+      - name: Update Version in Package
+        run: |
+          sed -i 's/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>'"${{ steps.latesttag.outputs.version }}"'<\/Version>/g' src/ApiContracts/ApiContracts.csproj
           
       - name: Build Project
         run: dotnet build src/ApiContracts/ApiContracts.csproj --configuration Release --output ./bin/Release/net8.0
@@ -36,7 +40,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Test Project
-        run: dotnet test test/ApiContracts/ApiContracts.csproj --no-build --verbosity normal
+        run: dotnet test tests/UnitTests/ApiContracts.csproj --no-build --verbosity normal
 
   Publish:
     needs: Test

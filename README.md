@@ -1,7 +1,8 @@
 # ApiContracts
 
-[![Publish Nuget Package](https://github.com/ajameslarner/ApiContracts/actions/workflows/Publish.yml/badge.svg)](https://github.com/ajameslarner/ApiContracts/actions/workflows/Publish.yml)
-[![Semantic Release Version](https://github.com/ajameslarner/ApiContracts/actions/workflows/Release.yml/badge.svg?branch=main)](https://github.com/ajameslarner/ApiContracts/actions/workflows/Release.yml)
+[![Package CI & CD](https://github.com/ajameslarner/ApiContracts/actions/workflows/package_ci_cd.yml/badge.svg?branch=main)](https://github.com/ajameslarner/ApiContracts/actions/workflows/package_ci_cd.yml)
+[![Build Version](https://github.com/ajameslarner/ApiContracts/actions/workflows/build_version.yml/badge.svg?branch=main)](https://github.com/ajameslarner/ApiContracts/actions/workflows/build_version.yml)
+
 
 ### What is ApiContracts?
 

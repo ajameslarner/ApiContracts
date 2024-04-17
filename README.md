@@ -25,12 +25,12 @@ namespace SampleAPI.Contracts;
 
 public class BasicUserContract : Contract
 {
-    public override string Service => "BasicUserContract";
+    public override string Name => "BasicUserContract";
 }
 
 public class FullUserContract : Contract
 {
-    public override string Service => "FullUserContract";
+    public override string Name => "FullUserContract";
 }
 ```
 
